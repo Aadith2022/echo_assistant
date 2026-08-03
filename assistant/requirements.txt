@@ -1,0 +1,50 @@
+google-genai>=2.3.0
+python-dotenv>=1.0.0
+tavily-python>=0.5.0
+requests>=2.32.0
+google-auth-oauthlib>=1.2.0
+google-api-python-client>=2.140.0
+chromadb>=0.5.0
+sentence-transformers>=3.0.0
+rank_bm25>=0.2.2
+
+# --- Phase 4: voice pipeline ---
+sounddevice>=0.5.0
+numpy>=1.26
+scipy>=1.11
+faster-whisper>=1.2.0
+kokoro-onnx>=0.5.0
+pynput>=1.8.0
+# Pinned exactly: pip silently falls back to 0.4.0, which has a completely
+# different API and fails in unrelated-looking ways.
+openwakeword==0.6.0
+# CUDA runtime DLLs for CTranslate2 on Windows. Without these, faster-whisper
+# loads on GPU but fails at inference with "cublas64_12.dll is not found".
+# Harmless on machines without an NVIDIA GPU (STT falls back to CPU).
+nvidia-cublas-cu12; platform_system == "Windows"
+nvidia-cudnn-cu12>=9,<10; platform_system == "Windows"
+
+# Note: the `silero-vad` package is deliberately NOT used. It imports
+# torchaudio at module load, which conflicts with the torch that
+# sentence-transformers depends on (WinError 127). The Silero ONNX graph is
+# vendored at models/silero/silero_vad.onnx and run directly on onnxruntime,
+# which arrives with faster-whisper.
+
+# --- Phase 5: three-tier screen context ---
+uiautomation>=2.0.20
+mss>=9.0.1
+Pillow>=10.0.0
+PyQt6>=6.7.0
+
+# --- Phase 6: browser automation ---
+# Patchright, NOT "patchwright" (a common misspelling, including in earlier
+# revisions of CLAUDE.md). It is a drop-in Playwright fork that patches CDP
+# leaks and the navigator.webdriver/runtime signatures Playwright exposes.
+# Needs a browser binary: `python -m patchright install chrome`.
+patchright>=1.61.0
+# Gate 0 - static extraction, so most "read this page" tasks never launch a
+# browser at all.
+trafilatura>=2.2.0
+feedparser>=6.0.11
+# Retry/re-queue for checkpointed long-running browser tasks.
+apscheduler>=3.11.0

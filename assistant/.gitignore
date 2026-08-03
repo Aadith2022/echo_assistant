@@ -1,0 +1,8 @@
+.env
+google_credentials.json
+token.json
+__pycache__/
+*.pyc
+memory_db/
+logs/
+screenshots/
