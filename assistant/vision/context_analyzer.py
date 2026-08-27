@@ -1,10 +1,8 @@
 """Tier 2 screen context: user-triggered screenshot + Gemini vision.
 
-Only runs when the user explicitly asks ("what's on my screen?"). The
-screenshot is captured, sent for analysis, and discarded - never written to
-disk. Uses its own isolated genai.Client (no tools attached), the same
-isolation pattern as guardrails/user_alignment_critic.py, so a vision call
-can never itself trigger a tool call.
+Only runs when the user explicitly asks. The screenshot is captured, analysed
+and discarded - never written to disk. Its own isolated client with no tools
+attached, so a vision call can never itself trigger one.
 """
 
 import base64

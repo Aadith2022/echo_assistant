@@ -6,12 +6,9 @@ from memory.store import MemoryRouter
 logger = logging.getLogger(__name__)
 
 _router = MemoryRouter()
-# Fire-and-forget writes: the caller doesn't need to wait for the embed +
-# Chroma write to complete before the turn continues. Fast enough in practice
-# (well under a second) that it lands before the next turn's auto-recall runs,
-# but this is a best-effort ordering, not a guarantee — acceptable for a
-# single-user desktop app; a hosted multi-user version would need a durable
-# queue instead of a bare thread pool.
+# Fire-and-forget: the turn does not wait for the embed and Chroma write.
+# Best-effort ordering rather than a guarantee - fine for a single-user
+# desktop app, but a hosted version would need a durable queue.
 _write_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="memory-write")
 
 

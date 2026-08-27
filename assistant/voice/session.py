@@ -1,11 +1,8 @@
 """Voice session orchestration.
 
-Wires the pieces together and, critically, keeps the typed REPL working at the
-same time. Voice mode does not lock you out of the keyboard: listeners run on
-background threads while the main thread stays on `input()`, and both paths
-funnel into `submit_turn()`.
-
-Turn flow:
+Voice mode does not lock you out of the keyboard: listeners run on background
+threads while the main thread stays on `input()`, and both paths funnel into
+`submit_turn()`.
 
     activation (hotkey or wake word)
       -> speaker.stop()                 # barge-in
@@ -13,11 +10,11 @@ Turn flow:
       -> transcribe
       -> submit_turn(text, spoken=True)
 
-Threading: the PortAudio callback and the AudioInput dispatcher must never
-block, so transcription and the agent turn are handed to a separate worker.
-Only the worker and the main thread ever call into `Agent`, and they serialize
-on `_turn_lock` - `GeminiClient` mutates `last_interaction_id`, so two
-concurrent turns would corrupt the interaction chain.
+The PortAudio callback and the AudioInput dispatcher must never block, so
+transcription and the agent turn go to a separate worker. Only that worker and
+the main thread call into `Agent`, and they serialize on `_turn_lock` -
+`GeminiClient` mutates `last_interaction_id`, so two concurrent turns would
+corrupt the interaction chain.
 """
 
 import logging
@@ -155,9 +152,8 @@ class VoiceSession:
 
     def _on_frame(self, frame) -> None:
         """Called on the audio dispatch thread. Must stay fast."""
-        # Drop our own speech (and cues) before anything else sees it,
-        # otherwise the VAD endpoints on the assistant's own audio and the
-        # wake word can retrigger.
+        # Drop our own speech (and cues) first, or the VAD endpoints on the
+        # assistant's own audio and the wake word retriggers.
         if self.echo_guard.is_echo(frame):
             return
 
@@ -170,11 +166,9 @@ class VoiceSession:
                 return
 
             if not self.vad.speech_started:
-                # Bounded patience for the user to *begin* talking. Without
-                # this, a capture the VAD never sees speech in (mic issue,
-                # user changed their mind, false wake-word trigger) sits
-                # listening forever with no feedback and no way back in -
-                # _activate() no-ops while already capturing.
+                # Bounded patience for the user to BEGIN talking. Unbounded, a
+                # capture the VAD never hears speech in listens forever with no
+                # way back in - _activate() no-ops while already capturing.
                 elapsed = time.monotonic() - self._activated_at
                 if elapsed > config.VOICE_LISTEN_TIMEOUT_SEC:
                     self._capturing.clear()
@@ -243,8 +237,8 @@ class VoiceSession:
 
             previous_model = None
             if spoken and config.VOICE_MODEL:
-                # Gemini TTFT dominates the spoken latency budget, so voice
-                # turns may run on a faster model than typed ones.
+                # TTFT dominates the spoken latency budget, so voice turns may
+                # run on a faster model than typed ones.
                 previous_model = self.agent.llm.model
                 self.agent.llm.model = config.VOICE_MODEL
 

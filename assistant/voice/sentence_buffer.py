@@ -6,17 +6,12 @@ would throw away the streaming latency win. This buffers deltas and emits
 whole sentences, so the assistant starts talking after the first sentence is
 complete rather than after the last.
 
-**Idle flush.** Gemini holds the stream open for ~2.4s after the final text
-token arrives (measured: last token at 1.65s, `interaction.completed` at
-4.10s). A reply whose final fragment has no terminal punctuation would
-otherwise sit finished-but-unspoken for that whole tail, because `flush()`
-only runs once the stream loop ends. So a watchdog emits the tail once no
-delta has arrived for `idle_flush_seconds`.
-
-The threshold is set from measurement, not guesswork: across sampled
-generations the largest observed gap between consecutive text deltas was
-108ms (p99 107ms), so the 500ms default has ~4.6x headroom and will not split
-a sentence the model is still writing.
+Idle flush: Gemini holds the stream open ~2.4s after the final text token, so
+a reply whose last fragment lacks terminal punctuation would sit
+finished-but-unspoken for that whole tail. A watchdog emits it once no delta
+has arrived for `idle_flush_seconds`. The 500ms default comes from
+measurement - the largest observed gap between real deltas was 108ms - so it
+cannot split a sentence the model is still writing.
 """
 
 import logging

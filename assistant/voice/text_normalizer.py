@@ -1,14 +1,12 @@
 """Prepare model output for a text-to-speech voice.
 
 The model writes for a screen: bold, bullets, links, headings. Fed straight to
-Kokoro those become spoken noise - `"**97% Tomatometer score**"` is read with
-the asterisks, and a single marked-up sentence ballooned to 14.5s of audio in
-testing.
+a TTS voice those become spoken noise - the asterisks are read aloud, and a
+marked-up sentence takes far longer to say than its plain equivalent.
 
-The real fix is upstream: spoken turns use a system prompt that asks for plain
-conversational prose (see VOICE_SYSTEM_PROMPT in llm/gemini_client.py). This
-module is the safety net for whatever still slips through, and it runs only on
-the speech path - what gets *printed* keeps its formatting.
+The real fix is upstream, in VOICE_SYSTEM_PROMPT. This is the safety net for
+whatever slips through, and it runs only on the speech path - what gets
+printed keeps its formatting.
 """
 
 import re

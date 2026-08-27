@@ -3,16 +3,15 @@ import logging
 
 import config
 from agent import Agent
+from guardrails import confirmation
 from vision.overlay import overlay
 
 
-# Our own packages - these are the ones worth hearing from under --verbose.
-_OWN_LOGGERS = ("agent", "llm", "voice", "memory", "guardrails", "tools")
+_OWN_LOGGERS = ("agent", "llm", "voice", "memory", "guardrails", "tools", "browser")
 
-# Third-party loggers that are pure noise at INFO. Raising sentence_transformers
-# above INFO also suppresses its "Batches: 100%|...|" progress bar, which it
-# shows based on its own effective log level - so --verbose was inadvertently
-# turning that bar on.
+# Pure noise at INFO. Raising sentence_transformers above INFO also suppresses
+# its progress bar, which it shows based on its own effective log level - so
+# --verbose would otherwise turn that bar on.
 _NOISY_LOGGERS = {
     "httpx": logging.WARNING,
     "httpcore": logging.WARNING,
@@ -100,6 +99,9 @@ def main() -> None:
     _configure_logging(args.verbose)
 
     overlay.start()
+    # main.py owns the terminal, so it owns the confirmation UI. Everything
+    # else asks through guardrails.confirmation and stays UI-agnostic.
+    confirmation.set_handler(confirmation.terminal_handler)
     try:
         agent = Agent()
         if args.voice or config.VOICE_ENABLED:
@@ -107,7 +109,22 @@ def main() -> None:
         else:
             run_text(agent)
     finally:
+        _shutdown_browser()
         overlay.stop()
+
+
+def _shutdown_browser() -> None:
+    """Close Chrome if a browser task left it open.
+
+    The engine idles out on its own, but a Chrome process left holding the
+    profile lock makes the next run fail to launch.
+    """
+    try:
+        from tools.browser_tool import shutdown_browser
+
+        shutdown_browser()
+    except Exception:
+        logging.getLogger(__name__).debug("Browser shutdown failed", exc_info=True)
 
 
 if __name__ == "__main__":

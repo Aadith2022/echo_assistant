@@ -8,7 +8,7 @@ chromadb>=0.5.0
 sentence-transformers>=3.0.0
 rank_bm25>=0.2.2
 
-# --- Phase 4: voice pipeline ---
+# --- Voice pipeline ---
 sounddevice>=0.5.0
 numpy>=1.26
 scipy>=1.11
@@ -24,21 +24,19 @@ openwakeword==0.6.0
 nvidia-cublas-cu12; platform_system == "Windows"
 nvidia-cudnn-cu12>=9,<10; platform_system == "Windows"
 
-# Note: the `silero-vad` package is deliberately NOT used. It imports
-# torchaudio at module load, which conflicts with the torch that
-# sentence-transformers depends on (WinError 127). The Silero ONNX graph is
-# vendored at models/silero/silero_vad.onnx and run directly on onnxruntime,
-# which arrives with faster-whisper.
+# The `silero-vad` package is deliberately NOT used: it imports torchaudio at
+# module load, which conflicts with the torch sentence-transformers depends on.
+# The ONNX graph is vendored at models/silero/ and run on onnxruntime, which
+# arrives with faster-whisper.
 
-# --- Phase 5: three-tier screen context ---
+# --- Screen context ---
 uiautomation>=2.0.20
 mss>=9.0.1
 Pillow>=10.0.0
 PyQt6>=6.7.0
 
-# --- Phase 6: browser automation ---
-# Patchright, NOT "patchwright" (a common misspelling, including in earlier
-# revisions of CLAUDE.md). It is a drop-in Playwright fork that patches CDP
+# --- Browser automation ---
+# Patchright, NOT "patchwright". A drop-in Playwright fork that patches CDP
 # leaks and the navigator.webdriver/runtime signatures Playwright exposes.
 # Needs a browser binary: `python -m patchright install chrome`.
 patchright>=1.61.0

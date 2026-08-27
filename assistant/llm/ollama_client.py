@@ -1,8 +1,8 @@
-"""Minimal Ollama client for the local Critic backend (private/desktop mode).
+"""Minimal Ollama client for the local Critic backend.
 
-Uses Ollama's REST API with schema-forced JSON output so a local Gemma model
-returns the same structured Verdict the cloud Critic does. Talks over `requests`
-(already a project dependency) to avoid pulling in the `ollama` package.
+Ollama's REST API with schema-forced JSON output, so a local model returns the
+same structured Verdict the cloud Critic does. Over `requests`, already a
+dependency, to avoid pulling in the `ollama` package.
 """
 
 import requests

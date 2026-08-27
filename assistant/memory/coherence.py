@@ -7,10 +7,8 @@ DECAY_HALF_LIFE_DAYS = 30
 def tag_new_memory(metadata: dict | None = None) -> dict:
     """Stamp a new memory with creation/update timestamps.
 
-    Facts are never merged or overwritten on write (Mem0's 2026 ADD-only
-    approach) - a changed fact (e.g. "moved to San Francisco") is stored
-    alongside the old one rather than replacing it. Recency does the work
-    of surfacing the current fact at retrieval time instead.
+    Writes are ADD-only: a changed fact is stored alongside the old one rather
+    than replacing it, and recency surfaces the current one at read time.
     """
     metadata = dict(metadata or {})
     now = time.time()
@@ -22,9 +20,9 @@ def tag_new_memory(metadata: dict | None = None) -> dict:
 def decayed_relevance(distance: float, metadata: dict, recency_weight: float = 0.3) -> float:
     """Combine semantic distance with recency decay into one rank score.
 
-    Lower is better (mirrors Chroma's distance convention), so recency is
-    subtracted from the raw semantic distance. This is what lets a newer,
-    contradicting fact outrank an older one without either being deleted.
+    Lower is better, mirroring Chroma's distance convention, so recency is
+    subtracted - which is what lets a newer contradicting fact outrank an
+    older one without either being deleted.
     """
     updated_at = metadata.get("updated_at", metadata.get("created_at", time.time()))
     age_days = max(0.0, (time.time() - updated_at) / 86400)

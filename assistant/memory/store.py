@@ -5,10 +5,8 @@ from memory.categories import categorize
 from memory.graph_memory import GraphMemory
 from memory.text_memory import TextMemory
 
-# Reciprocal Rank Fusion constant (standard default from Cormack et al. 2009,
-# "Reciprocal Rank Fusion outperforms Condorcet and Individual Rank Learning
-# Methods", SIGIR). Combines ranked lists from different scoring methods
-# without needing to normalize their raw scores against each other.
+# Reciprocal Rank Fusion constant (Cormack et al. 2009). Combines ranked lists
+# from different scoring methods without normalizing their raw scores.
 RRF_K = 60
 
 

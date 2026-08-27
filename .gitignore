@@ -30,6 +30,15 @@ assistant/screenshots/
 *.sqlite3
 *.db
 
+# --- Internal working notes, kept local ---
+CLAUDE.md
+CLAUDE.md.bak
+# Leading slash: root only. Without it this would also match assistant/memory/,
+# which is the real memory subsystem.
+/memory/
+# Corpus run output: machine-specific timings that go stale between sessions
+assistant/baseline_*.json
+
 # --- OS / editor ---
 .DS_Store
 Thumbs.db

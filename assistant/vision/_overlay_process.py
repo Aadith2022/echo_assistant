@@ -1,11 +1,9 @@
 """Standalone entry point for a single overlay widget (toast or highlight box).
 
-Run as its own process (`python -m vision._overlay_process ...`) rather than
-on a background thread of the main process. PyQt6's QApplication must own
-whichever thread it runs on for its whole lifetime, and creating/driving one
-from a worker thread segfaulted in testing on this platform - a dedicated
-short-lived process's main thread sidesteps that entirely. Each invocation
-shows one widget, waits out its own timer, and exits.
+Run as its own process rather than on a background thread: PyQt6's
+QApplication must own whichever thread it runs on for that thread's whole
+life, and driving one from a worker thread segfaults. Each invocation shows
+one widget, waits out its own timer, and exits.
 """
 
 import argparse
@@ -25,11 +23,9 @@ def _run_toast(message: str, level: str, duration_ms: int) -> None:
     app = QApplication([])
     color = _LEVEL_COLORS.get(level, _LEVEL_COLORS["info"])
 
-    # No WA_TranslucentBackground: in testing on this machine it silently
-    # broke stylesheet rendering, falling back to a tiny unstyled native
-    # tooltip instead of the colored box. A plain opaque frameless widget
-    # renders correctly and a small rectangular toast doesn't need rounded
-    # transparent corners badly enough to chase that down further.
+    # No WA_TranslucentBackground: it silently breaks stylesheet rendering,
+    # falling back to a tiny unstyled native tooltip. Every programmatic check
+    # still passes, so this is only visible in a screenshot.
     label = QLabel(message)
     label.setWindowFlags(
         Qt.WindowType.FramelessWindowHint
@@ -54,12 +50,10 @@ def _run_toast(message: str, level: str, duration_ms: int) -> None:
 
 
 def _run_highlight(x: int, y: int, w: int, h: int, duration_ms: int) -> None:
-    """Draw a border around (x, y, w, h) using four thin opaque strips
-    rather than one widget with a painted border on a translucent
-    background - the same WA_TranslucentBackground rendering failure that
-    hit the toast (see _run_toast) applies here too, and would otherwise
-    make the border invisible. Four solid bars need no transparency at all:
-    each only covers a thin edge, leaving the highlighted content visible."""
+    """Draw a border using four thin opaque strips rather than one widget with
+    a painted border on a translucent background, which the rendering failure
+    noted in _run_toast would make invisible. Four bars need no transparency
+    at all and leave the highlighted content visible."""
     from PyQt6.QtCore import Qt, QTimer
     from PyQt6.QtWidgets import QApplication, QWidget
 

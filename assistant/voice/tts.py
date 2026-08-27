@@ -1,15 +1,12 @@
 """Text-to-speech: pluggable engines plus cancellable playback.
 
-Two backends behind `TTS_BACKEND`, mirroring the existing CRITIC_BACKEND
-pattern: Kokoro (local, default, no key, Apache-2.0) and ElevenLabs (cloud,
-bring-your-own-key). Following the convention in tools/search.py, a missing
-model file or API key degrades to a clear spoken-path-disabled message rather
-than raising at import.
+Two backends behind `TTS_BACKEND`: Kokoro (local, default, no key) and
+ElevenLabs (cloud, bring-your-own-key). A missing model file or API key
+degrades to a clear message rather than raising at import.
 
 `Speaker` is where barge-in lives. Sentences are synthesized and played on a
-worker thread; `stop()` both drains the pending queue and aborts the audio
-already handed to the sound card, so an interruption cuts within a block or
-two rather than at the end of the sentence.
+worker thread, and `stop()` both drains the queue and aborts audio already
+handed to the sound card, so an interruption cuts within a block or two.
 """
 
 import logging
@@ -67,9 +64,8 @@ class KokoroTTS(TTSEngine):
         from kokoro_onnx import Kokoro
 
         # onnxruntime's default threading is counterproductive on a high core
-        # count machine: measured 1.11s/sentence with the default versus 0.76s
-        # pinned to 4 intra-op threads (24 logical cores). Capping also leaves
-        # headroom for the STT model rather than fighting it for cores.
+        # count: 1.11s/sentence by default versus 0.76s pinned to 4 intra-op
+        # threads. Capping also leaves headroom for the STT model.
         options = ort.SessionOptions()
         options.intra_op_num_threads = config.KOKORO_THREADS
         options.inter_op_num_threads = 1
@@ -79,19 +75,15 @@ class KokoroTTS(TTSEngine):
         )
         self._kokoro = Kokoro.from_session(session, voices_path)
 
-        # Resolve the voice to its style vector once. Passing the name instead
-        # makes kokoro-onnx re-read the voices archive on every call, which is
-        # both wasteful and intermittently fatal: the archive has overlapping
-        # zip entries, and Python 3.13's zipfile rejects those as a possible
-        # zip bomb after enough reads (BadZipFile: Overlapped entries).
+        # Resolved once: passing the voice NAME makes kokoro-onnx re-read the
+        # voices archive on every call, and its overlapping zip entries trip
+        # Python 3.13's zip-bomb check after enough reads.
         self._style = self._kokoro.get_voice_style(self.voice)
 
-        # Serialize synthesis: the underlying session and voice archive are not
-        # thread-safe, and the Speaker worker is not necessarily the only
-        # caller.
+        # The session and voice archive are not thread-safe.
         self._lock = threading.Lock()
 
-        # First synthesis is several times slower than steady state; spend it now.
+        # First synthesis is several times slower than steady state.
         self.synthesize("ready")
         logger.info("TTS ready: kokoro (voice=%s)", self.voice)
 
@@ -116,10 +108,9 @@ class ElevenLabsTTS(TTSEngine):
                 "or use the local backend with TTS_BACKEND=kokoro."
             )
 
-        # PCM output avoids a decode step, but ElevenLabs gates it to paid
-        # tiers; mp3 works on every tier and `av` is already installed as a
-        # faster-whisper dependency. Probe once at startup so the fallback
-        # doesn't cost latency on every sentence.
+        # PCM avoids a decode step but is gated to paid tiers; mp3 works on
+        # every tier. Probed once at startup, so the fallback does not cost
+        # latency on every sentence.
         self.sample_rate = 24000
         self._output_format = "pcm_24000"
         try:
@@ -231,9 +222,8 @@ class Speaker:
     def play(self, samples: np.ndarray, sample_rate: int) -> None:
         """Play ready-made audio (e.g. a UI cue) through the same path.
 
-        Goes through the queue and the echo guard exactly as speech does, so
-        the microphone treats a cue as our own output rather than as the user
-        talking.
+        Through the queue and the echo guard exactly as speech is, so the mic
+        treats a cue as our own output rather than as the user talking.
         """
         if samples is None or samples.size == 0:
             return
@@ -256,8 +246,7 @@ class Speaker:
         with self._stream_lock:
             if self._stream is not None:
                 try:
-                    # abort() discards buffered audio; stop() would drain it,
-                    # which is exactly the delay we're trying to avoid.
+                    # abort() discards buffered audio; stop() would drain it.
                     self._stream.abort()
                 except Exception:
                     logger.debug("output stream abort failed", exc_info=True)
@@ -336,16 +325,16 @@ class Speaker:
                 return
             block = audio[start : start + _BLOCK]
 
-            # Feed the echo guard just before the samples go out, so mic frames
-            # can be matched against what is actually being played.
+            # Fed just before the samples go out, so mic frames match what is
+            # actually being played.
             if self.echo_guard is not None:
                 self.echo_guard.note_played(block, sample_rate)
 
             try:
                 stream.write(block)
             except Exception:
-                # abort() from stop() makes the in-flight write raise; that's
-                # the expected path for an interruption, not an error.
+                # abort() from stop() makes the in-flight write raise - the
+                # expected path for an interruption, not an error.
                 if not self._cancel.is_set():
                     logger.exception("audio write failed")
                 return

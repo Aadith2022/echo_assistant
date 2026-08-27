@@ -9,7 +9,6 @@ class Agent:
         """Run one turn.
 
         `spoken` selects the voice system prompt, which asks for short
-        conversational prose instead of markdown - a reply written for the
-        screen is read aloud with its asterisks intact.
+        conversational prose instead of markdown.
         """
         return self.llm.send(user_input, on_delta=on_delta, spoken=spoken)

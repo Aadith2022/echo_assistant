@@ -1,8 +1,7 @@
 def categorize(text: str) -> str:
-    """Classify a fact as "dense" (semantic store) or "relational" (graph store).
+    """Classify a fact as "dense" (semantic store) or "relational" (graph).
 
-    Always returns "dense" today - relational/temporal-path routing is deferred
-    until graph_memory.py is actually built (Phase 10+), so this stays a stub
-    rather than fake-classifying with no real graph backend to route to.
+    Always "dense" until graph_memory.py is real - classifying with nothing to
+    route to would be worse than a stub.
     """
     return "dense"

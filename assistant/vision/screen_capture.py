@@ -1,10 +1,7 @@
-"""Screenshot capture primitive shared by Tier 2 (user-triggered) now and
-Tier 3 (task-scoped) later.
+"""Screenshot capture primitive, shared by the Tier 2 and Tier 3 screen paths.
 
-Returns raw PNG bytes only - never writes to disk. What happens to those
-bytes is the caller's decision: Tier 2 (`context_analyzer.py`) discards them
-right after the vision call; a Phase 6 Tier-3 caller will be the first to
-persist to `config.SCREENSHOTS_DIR` and wipe it on task completion.
+Returns raw PNG bytes and never writes to disk - what happens to them is the
+caller's decision.
 """
 
 import io
@@ -17,8 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def _foreground_bounds() -> tuple[int, int, int, int] | None:
-    """Return (left, top, width, height) of the foreground window, or None
-    if it can't be determined (uiautomation missing, no foreground window)."""
+    """Return (left, top, width, height) of the foreground window, or None."""
     try:
         import uiautomation as auto
 

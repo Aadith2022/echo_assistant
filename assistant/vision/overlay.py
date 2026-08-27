@@ -1,21 +1,15 @@
 """Always-on-top overlay: security toasts and element highlighting.
 
-Wires up the "Security notifications" row of CLAUDE.md's five-layer-defense
-table - a toast fires when the User Alignment Critic VETOes an action.
-`highlight_element` is a working primitive for the same purpose Phase 6/7
-will need (drawing attention to a specific screen region during a browser/OS
-task) - built now because it's cheap, but nothing calls it yet.
+A toast fires when the User Alignment Critic vetoes an action.
 
-Each toast/highlight runs as its own short-lived subprocess
-(`vision/_overlay_process.py`) rather than on a background thread of the main
-process. PyQt6's QApplication must own whichever thread it runs on for its
-whole lifetime; driving one from a worker thread segfaulted in testing here.
-A dedicated process's main thread sidesteps that, and multiple toasts can
-overlap without any shared Qt state to corrupt.
+Each widget runs as its own short-lived subprocess rather than on a background
+thread: PyQt6's QApplication must own whichever thread it runs on for that
+thread's whole life, and driving one from a worker thread segfaults. A
+dedicated process's main thread sidesteps that, and overlapping toasts share
+no Qt state.
 
-If PyQt6 isn't importable at all (headless box, missing DLL), every method
-silently becomes a no-op - the overlay is a UX nicety and must never be able
-to break the tool loop or the Critic path.
+If PyQt6 is not importable, every method becomes a silent no-op - the overlay
+must never be able to break the tool loop or the Critic path.
 """
 
 import logging

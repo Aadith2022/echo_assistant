@@ -1,19 +1,15 @@
 """Wake-word detection via openWakeWord.
 
-The project is named Echo, but the spoken activation phrase is still "Hey
-Jarvis" - openWakeWord only ships six pretrained models (alexa, hey_jarvis,
-hey_mycroft, hey_rhasspy, timer, weather) and none of them is "Echo". A custom
-"Hey Echo" model is a separate project (synthetic TTS training data, negative
-audio, training a classifier), not a quick swap, so this is a known,
-deliberate gap rather than an oversight. Uses the pretrained model as-is, so
-nothing needs training today.
+The project is named Echo but the activation phrase is "Hey Jarvis":
+openWakeWord ships six pretrained models and none of them is "Echo". A custom
+one is a separate project (synthetic TTS training data, negative audio,
+training a classifier), so this is a known gap rather than an oversight.
 
 Frames arrive from `AudioInput` as 512-sample float32; openWakeWord expects
-int16 and performs best on 1280-sample (80ms) chunks, so they are re-blocked
-here.
+int16 and performs best on 1280-sample chunks, so they are re-blocked here.
 
-Pinned to openwakeword==0.6.0 in requirements.txt: if resolution falls back to
-0.4.0 the API is completely different and fails in confusing, unrelated ways.
+Pinned to openwakeword==0.6.0: falling back to 0.4.0 installs a completely
+different API that fails in confusing, unrelated ways.
 """
 
 import logging

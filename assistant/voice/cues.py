@@ -1,16 +1,14 @@
 """Short audio cues that tell the user what the assistant is doing.
 
 Without these, saying the wake word produces silence and you have no idea
-whether you were heard until the reply arrives - so you either talk over a
-system that isn't listening yet, or wait needlessly.
+whether you were heard until the reply arrives.
 
-Cues are generated rather than shipped as audio files: they are a few sine
-cycles, so a WAV asset would be pure overhead. They default to Kokoro's 24kHz
-so `Speaker` never has to reopen the output stream at a different rate just to
-play one, which would add latency and risk a click.
+Generated rather than shipped as audio files - they are a few sine cycles, so
+a WAV asset would be pure overhead. Default to Kokoro's 24kHz so `Speaker`
+never reopens the output stream at a different rate just to play one.
 
-Deliberately quiet and short. A cue that startles you, or that you have to
-wait through before speaking, is worse than no cue.
+Deliberately quiet and short: a cue that startles you, or that you wait through
+before speaking, is worse than no cue.
 """
 
 import numpy as np

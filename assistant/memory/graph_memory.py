@@ -1,8 +1,8 @@
 class GraphMemory:
-    """Stub for a future Graphiti-backed temporal knowledge graph (Phase 10+).
+    """Stub for a future Graphiti-backed temporal knowledge graph.
 
-    Kept as a no-op seam so MemoryRouter's call sites don't need to change
-    when the real graph backend is added later.
+    A no-op seam, so MemoryRouter's call sites do not change when a real graph
+    backend is added.
     """
 
     def remember(self, text: str, metadata: dict | None = None) -> None:

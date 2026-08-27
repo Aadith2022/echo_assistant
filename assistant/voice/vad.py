@@ -1,22 +1,17 @@
 """Voice activity detection and end-of-utterance detection (Silero v5).
 
-Runs the Silero ONNX graph directly on onnxruntime rather than through the
-`silero-vad` pip package. That package imports `torchaudio` at module load,
-which pulled in a torchaudio built against a different torch ABI than the one
-sentence-transformers already relies on (WinError 127 on import). Going
-straight to onnxruntime - already present as a faster-whisper dependency -
-keeps torch out of the realtime audio path entirely and removes the coupling.
+Runs the ONNX graph directly on onnxruntime rather than through the
+`silero-vad` pip package, which imports `torchaudio` at module load and pulls
+in a build against a different torch ABI than sentence-transformers relies on.
 
-Two things about this model fail *silently* if you get them wrong, so both are
-load-bearing:
+Two things fail SILENTLY if you get them wrong:
 
-1. It is stateful - a [2, 1, 128] LSTM state is threaded between calls and must
-   be reset between utterances.
+1. The model is stateful - a [2, 1, 128] LSTM state is threaded between calls
+   and must be reset between utterances.
 2. Since v5 it expects 64 samples of preceding context prepended to each
-   512-sample frame (576 total). Its declared input shape is [None, None], so
-   passing a bare 512 samples is accepted without error and simply returns
-   near-zero probabilities forever. Measured on clean speech: max probability
-   0.010 without the context window versus 1.000 with it.
+   512-sample frame. Its declared input shape is [None, None], so a bare 512 is
+   accepted without error and returns near-zero probabilities forever - 0.010
+   on clean speech, versus 1.000 with the context window.
 """
 
 import logging

@@ -6,3 +6,6 @@ __pycache__/
 memory_db/
 logs/
 screenshots/
+# The browser's persistent Chrome profile: holds cookies and any sessions
+# logged in inside it. Never commit.
+browser_profile/

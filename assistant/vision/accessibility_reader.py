@@ -1,9 +1,8 @@
 """Tier 1 screen context: the Windows Accessibility API via `uiautomation`.
 
-Returns a condensed text description of the foreground window's UI element
-tree - no pixels, no vision model, <50ms in practice. This is the cheap,
-privacy-safe default the model should reach for before ever taking a
-screenshot (Tier 2).
+A condensed text description of the foreground window's element tree - no
+pixels, no vision model, <50ms. The privacy-safe default the model should
+reach for before ever taking a screenshot.
 """
 
 import logging
@@ -12,8 +11,7 @@ import config
 
 logger = logging.getLogger(__name__)
 
-# Structural containers are only worth descending into, not reporting - they
-# clutter the tree without telling the model anything actionable.
+# Structural containers are worth descending into but not reporting.
 _SKIP_IF_UNNAMED = {"PaneControl", "GroupControl", "CustomControl", "WindowControl"}
 
 _MAX_OUTPUT_CHARS = 4000

@@ -1,18 +1,16 @@
 """Speech-to-text via faster-whisper (CTranslate2).
 
-Two Windows-specific details are load-bearing here:
+Two Windows-specific details are load-bearing:
 
-1. CUDA DLL discovery. CTranslate2 lazily loads `cublas64_12.dll` and cuDNN 9
-   at *inference* time, using plain LoadLibrary - which searches PATH and
-   ignores `os.add_dll_directory`. Without CUDA installed system-wide the model
-   loads fine and then fails on the first transcribe. The NVIDIA pip wheels
-   ship the DLLs, so `_register_cuda_libraries()` prepends their directories to
-   PATH before faster_whisper is imported. Measured effect: cuda 0.07s vs cpu
-   2.44s for the same 3s clip.
+1. CTranslate2 lazily loads `cublas64_12.dll` and cuDNN 9 at INFERENCE time via
+   plain LoadLibrary, which searches PATH and ignores `os.add_dll_directory` -
+   so without CUDA installed system-wide the model loads fine and then fails on
+   the first transcribe. `_register_cuda_libraries()` prepends the NVIDIA pip
+   wheel directories to PATH before faster_whisper is imported. Measured: 0.07s
+   on cuda versus 2.44s on cpu for the same clip.
 
-2. Warmup. The first CUDA transcribe pays ~12s of context initialisation. That
-   would land on the user's first spoken sentence, so the model is warmed with
-   silence at startup instead.
+2. The first CUDA transcribe pays ~12s of context initialisation, which would
+   otherwise land on the user's first spoken sentence.
 """
 
 import glob
